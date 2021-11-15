@@ -16,7 +16,6 @@ led3 = 21
 led4 = 12
 led5 = 20
 
-
 def get_temp():
     cpu_temp = os.popen("vcgencmd measure_temp").readline()
     temp1 = cpu_temp.replace("temp=", "")
