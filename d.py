@@ -155,6 +155,8 @@ async def on_voice_state_update(member, before, after):
             updateLeds(len(after.channel.members))
         except:
             updateLeds(len(before.channel.members))
-
-client.run('NjQzMzUyOTM0ODU1NDc1MjAw.XckPHA.JEZgQhBeQFX9E0p4g2vsB3zix70')
+token = 
+if __name__ == '__main__':
+    import config
+    client.run(config.token)
 
