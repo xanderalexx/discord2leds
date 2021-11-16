@@ -5,6 +5,9 @@ import os
 from datetime import datetime, timedelta
 from tabulate import tabulate
 from threading import Thread
+from pytz import timezone, utc
+import pytz
+from watchpoints import watch
 
 starttime = datetime.now()
 
@@ -20,6 +23,13 @@ def get_temp():
     cpu_temp = os.popen("vcgencmd measure_temp").readline()
     temp1 = cpu_temp.replace("temp=", "")
     return temp1.replace("'C", "")
+
+def get_pst_time():
+    date_format='%m/%d/%Y, %-I:%M %p %Z'
+    date = datetime.now(tz=utc)
+    date = date.astimezone(timezone('US/Pacific'))
+    pstDateTime=date.strftime(date_format)
+    return pstDateTime
 
 g.setwarnings(False)
 
@@ -57,20 +67,24 @@ g.output(led5, g.LOW)
 masterdata = []
 monitoring = False
 toptemp = 0
+timeattoptemp = None
 
 def gettimedif(b):
     return (b-starttime).total_seconds()
 
 def startMonitoring():
     while True:
+        global timeattoptemp
         global toptemp
-        time1 = datetime.now()
+        time1 = get_pst_time()
         cputemp = float(get_temp())
         if(toptemp == 0):
             toptemp = cputemp
+            timeattoptemp = time1
         else:
             if(cputemp > toptemp):
                 toptemp = cputemp
+                timeattoptemp = time1
             else:
                 return
         time.sleep(15)
@@ -118,6 +132,7 @@ async def on_ready():
 @client.event
 async def on_message(message):
     global toptemp
+    global timeattoptemp
     if message.author == client.user:
         return
     if(len(message.mentions) == 0):
@@ -129,10 +144,10 @@ async def on_message(message):
                 await message.channel.send(timedelta(seconds=secondsalive))
             elif("temp" in message.content and "toptemp" not in message.content):
                 final = get_temp() + "C"
-                await message.channel.send(get_temp() + "C")
+                await message.channel.send(final)
             elif("toptemp" in message.content):
-                final = str(toptemp) + "C"
-                await message.channel.send(str(toptemp) + "C")
+                final = str(toptemp) + "C @ " + str(timeattoptemp)
+                await message.channel.send(final)
             else:
                 return
         else:
